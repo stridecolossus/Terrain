@@ -5,14 +5,7 @@ import java.io.IOException;
 import org.sarge.jove.io.DataSource;
 import org.sarge.jove.io.ImageData;
 import org.sarge.jove.io.ResourceLoaderAdapter;
-import org.sarge.jove.platform.vulkan.VkAccess;
-import org.sarge.jove.platform.vulkan.VkFormat;
-import org.sarge.jove.platform.vulkan.VkImageAspect;
-import org.sarge.jove.platform.vulkan.VkImageLayout;
-import org.sarge.jove.platform.vulkan.VkImageType;
-import org.sarge.jove.platform.vulkan.VkImageUsage;
-import org.sarge.jove.platform.vulkan.VkMemoryProperty;
-import org.sarge.jove.platform.vulkan.VkPipelineStage;
+import org.sarge.jove.platform.vulkan.*;
 import org.sarge.jove.platform.vulkan.core.Command.Pool;
 import org.sarge.jove.platform.vulkan.core.LogicalDevice;
 import org.sarge.jove.platform.vulkan.core.VulkanBuffer;
@@ -34,21 +27,26 @@ public class TextureConfiguration {
 	@Autowired private LogicalDevice dev;
 
 	@Bean
-	public Sampler sampler(ApplicationConfiguration cfg) {
+	public Sampler sampler() { // ApplicationConfiguration cfg) {
 		return new Sampler.Builder()
-				.anisotropy(cfg.getAnisotropy())
-				.wrap(Sampler.Wrap.EDGE.mode(false))
+				//.anisotropy(cfg.getAnisotropy())
+				//.wrap(Sampler.Wrap.EDGE.mode(false))
+//				.wrap(VkSamplerAddressMode.MIRRORED_REPEAT)
+				.wrap(VkSamplerAddressMode.CLAMP_TO_EDGE)
 				.build(dev);
 	}
 
 	@Bean
-	public View texture(AllocationService allocator, DataSource data, Pool transfer) throws IOException {
+	public static ImageData heightmap(DataSource data) {
 		// Load texture image
-		final var loader = new ResourceLoaderAdapter<>(data, new VulkanImageLoader());
-		final ImageData image = loader.load("heightmap.ktx2");
 //		final var loader = new ResourceLoaderAdapter<>(data, new NativeImageLoader());
 //		final ImageData image = loader.load("heightmap-grayscale.jpg");
+		final var loader = new ResourceLoaderAdapter<>(data, new VulkanImageLoader());
+		return loader.load("heightmap.ktx2");
+	}
 
+	@Bean
+	public View texture(ImageData image, AllocationService allocator, Pool transfer) throws IOException {
 		// Determine image format
 		final VkFormat format = VkFormat.R16_UNORM; // TODO - INT -> NORM if one channel, should we ALWAYS infer the format and ignore (remove?) the hint?
 //		final VkFormat format = FormatBuilder.format(image);
@@ -64,9 +62,9 @@ public class TextureConfiguration {
 				.build();
 
 		// Init image memory properties
-		final var props = new MemoryProperties.Builder<VkImageUsage>()
-				.usage(VkImageUsage.TRANSFER_DST)
-				.usage(VkImageUsage.SAMPLED)
+		final var props = new MemoryProperties.Builder<VkImageUsageFlag>()
+				.usage(VkImageUsageFlag.TRANSFER_DST)
+				.usage(VkImageUsageFlag.SAMPLED)
 				.required(VkMemoryProperty.DEVICE_LOCAL)
 				.build();
 

@@ -23,8 +23,9 @@ public class DescriptorConfiguration {
 	private final Binding samplerBinding = new Binding.Builder()
 			.binding(0)
 			.type(VkDescriptorType.COMBINED_IMAGE_SAMPLER)
-			.stage(VkShaderStage.VERTEX)
+			.stage(VkShaderStage.TESSELLATION_EVALUATION)
 			.stage(VkShaderStage.FRAGMENT)
+			//.stage(VkShaderStage.VERTEX)
 			.build();
 
 //	private final Binding uniformBinding = new Binding.Builder()

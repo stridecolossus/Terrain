@@ -1,12 +1,13 @@
 package org.sarge.jove.demo.terrain;
 
-import java.io.IOException;
-
 import org.sarge.jove.common.Bufferable;
 import org.sarge.jove.common.Dimensions;
+import org.sarge.jove.io.ImageData;
 import org.sarge.jove.model.GridBuilder;
 import org.sarge.jove.model.Model;
-import org.sarge.jove.platform.vulkan.VkBufferUsage;
+import org.sarge.jove.model.Primitive;
+import org.sarge.jove.model.Quad;
+import org.sarge.jove.platform.vulkan.VkBufferUsageFlag;
 import org.sarge.jove.platform.vulkan.VkMemoryProperty;
 import org.sarge.jove.platform.vulkan.core.Command.Pool;
 import org.sarge.jove.platform.vulkan.core.LogicalDevice;
@@ -24,30 +25,33 @@ public class ModelConfiguration {
 	@Autowired private Pool transfer;
 
 	@Bean
-	public static Model model() throws IOException {
+	public static Model model(ImageData heightmap) {
+		final Dimensions size = new Dimensions(64, 64);
 		return new GridBuilder()
-				.size(new Dimensions(64, 64))
-				.tile(0.25f)
+				.size(size)
+				.scale(0.25f)
+				.primitive(Primitive.PATCH)
+				.index(Quad.STRIP)
 				.build();
 	}
 
 	@Bean
 	public VulkanBuffer vbo(Model model) {
-		return buffer(model.vertices(), VkBufferUsage.VERTEX_BUFFER);
+		return buffer(model.vertexBuffer(), VkBufferUsageFlag.VERTEX_BUFFER);
 	}
 
 	@Bean
 	public VulkanBuffer index(Model model) {
-		return buffer(model.index(), VkBufferUsage.INDEX_BUFFER);
+		return buffer(model.indexBuffer(), VkBufferUsageFlag.INDEX_BUFFER);
 	}
 
-	protected VulkanBuffer buffer(Bufferable data, VkBufferUsage usage) {
+	protected VulkanBuffer buffer(Bufferable data, VkBufferUsageFlag usage) {
 		// Create staging buffer
 		final VulkanBuffer staging = VulkanBuffer.staging(dev, allocator, data);
 
 		// Init buffer memory properties
-		final MemoryProperties<VkBufferUsage> props = new MemoryProperties.Builder<VkBufferUsage>()
-				.usage(VkBufferUsage.TRANSFER_DST)
+		final MemoryProperties<VkBufferUsageFlag> props = new MemoryProperties.Builder<VkBufferUsageFlag>()
+				.usage(VkBufferUsageFlag.TRANSFER_DST)
 				.usage(usage)
 				.required(VkMemoryProperty.DEVICE_LOCAL)
 				.build();

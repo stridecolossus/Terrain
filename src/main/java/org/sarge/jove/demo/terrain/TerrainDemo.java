@@ -57,13 +57,22 @@ public class TerrainDemo {
 				if(bean instanceof TransientNativeObject obj) {
 					obj.destroy();
 				}
+				else
+				if(bean instanceof List<?> list) {
+					for(Object obj : list) {
+						postProcessBeforeDestruction(obj, null);
+					}
+				}
 			}
 		};
 	}
 
 	@SuppressWarnings("resource")
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) {
 		ToStringBuilder.setDefaultStyle(ToStringStyle.SHORT_PREFIX_STYLE);
+
+		//
+		System.loadLibrary("renderdoc");
 
 		new SpringApplicationBuilder(TerrainDemo.class)
 				.headless(false)

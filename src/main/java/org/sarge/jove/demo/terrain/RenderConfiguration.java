@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import javax.annotation.PreDestroy;
-
 import org.sarge.jove.control.FrameCounter;
 import org.sarge.jove.control.FrameThrottle;
 import org.sarge.jove.control.FrameTracker;
@@ -17,7 +15,7 @@ import org.sarge.jove.platform.vulkan.core.Command;
 import org.sarge.jove.platform.vulkan.core.LogicalDevice;
 import org.sarge.jove.platform.vulkan.core.VulkanBuffer;
 import org.sarge.jove.platform.vulkan.pipeline.Pipeline;
-import org.sarge.jove.platform.vulkan.pipeline.PushUpdateCommand;
+import org.sarge.jove.platform.vulkan.pipeline.PushConstantUpdateCommand;
 import org.sarge.jove.platform.vulkan.render.DefaultFrameRenderer;
 import org.sarge.jove.platform.vulkan.render.DescriptorSet;
 import org.sarge.jove.platform.vulkan.render.DrawCommand;
@@ -30,6 +28,7 @@ import org.sarge.jove.platform.vulkan.render.VulkanFrame.FrameRenderer;
 import org.sarge.jove.scene.RenderLoop.Task;
 import org.sarge.jove.scene.RenderTask;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,18 +37,25 @@ public class RenderConfiguration {
 	@Autowired private LogicalDevice dev;
 	@Autowired private Queue graphics;
 	@Autowired private List<FrameBuffer> buffers;
-	private final List<Command.Pool> pools = new ArrayList<>();
+	@Autowired private List<Pipeline> pipelines;
 
-	@PreDestroy
-	void destroy() {
-		buffers.forEach(FrameBuffer::destroy);
-		pools.forEach(Command.Pool::destroy);
+	@Bean("render.pools")
+	List<Command.Pool> commandPools() {
+		final List<Command.Pool> pools = new ArrayList<>();
+		for(int n = 0; n < 2; ++n) {
+			final Command.Pool pool = Command.Pool.create(dev, graphics);
+			pools.add(pool); // TODO - urgh, maybe track in post processor? nasty tho
+		}
+		return pools;
 	}
 
 	@Bean
-	static Recorder recorder(Pipeline pipeline, List<DescriptorSet> descriptors, VulkanBuffer vbo, VulkanBuffer index, Model model) {
+	Recorder recorder(List<DescriptorSet> descriptors, VulkanBuffer vbo, VulkanBuffer index, Model model) {
 		final DescriptorSet ds = descriptors.get(0); // TODO
 		final DrawCommand draw = DrawCommand.of(model);
+
+		// TODO
+		Pipeline pipeline = pipelines.get(0);
 
 		return buffer -> {
 			buffer
@@ -62,11 +68,12 @@ public class RenderConfiguration {
 	}
 
 	@Bean
-	public Task render(Swapchain swapchain, List<Recorder> recorders, Queue presentation, PushUpdateCommand update) {
+	public Task render(Swapchain swapchain, List<Recorder> recorders, @Qualifier("render.pools") List<Command.Pool> pools, Queue presentation, PushConstantUpdateCommand update) {
 		final FrameRenderer[] array = new FrameRenderer[2];
 		for(int n = 0; n < 2; ++n) {
-			final Command.Pool pool = Command.Pool.create(dev, graphics);
-			pools.add(pool); // TODO - urgh, maybe track in post processor? nasty tho
+			final Command.Pool pool = pools.get(n);
+					//Command.Pool.create(dev, graphics);
+			//pools.add(pool); // TODO - urgh, maybe track in post processor? nasty tho
 
 			final Supplier<Command.Buffer> factory = () -> {
 				pool.reset();

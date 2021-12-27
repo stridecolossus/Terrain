@@ -1,10 +1,10 @@
 #version 450
 
-layout(set = 0, binding = 1) uniform sampler2D heightMap;
-layout(location = 0) in vec2 coords[];
+layout(location=0) in vec2 inCoord[];
 
-layout(vertices = 4) out;
-layout(location = 0) out vec2 outCoords[4];
+layout(vertices=4) out;
+
+layout(location=0) out vec2 outCoord[4];
 
 void main() {
     if(gl_InvocationID == 0) {
@@ -17,5 +17,5 @@ void main() {
     }
     
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
-    outCoords[gl_InvocationID] = coords[gl_InvocationID];
+    outCoord[gl_InvocationID] = inCoord[gl_InvocationID];
 }

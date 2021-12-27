@@ -66,8 +66,8 @@ class PresentationConfiguration {
 				.build();
 
 		// Init properties
-		final MemoryProperties<VkImageUsage> props = new MemoryProperties.Builder<VkImageUsage>()
-				.usage(VkImageUsage.DEPTH_STENCIL_ATTACHMENT)
+		final MemoryProperties<VkImageUsageFlag> props = new MemoryProperties.Builder<VkImageUsageFlag>()
+				.usage(VkImageUsageFlag.DEPTH_STENCIL_ATTACHMENT)
 				.required(VkMemoryProperty.DEVICE_LOCAL)
 				.build();
 
