@@ -23,20 +23,14 @@ public class DescriptorConfiguration {
 	private final Binding samplerBinding = new Binding.Builder()
 			.binding(0)
 			.type(VkDescriptorType.COMBINED_IMAGE_SAMPLER)
+			.stage(VkShaderStage.TESSELLATION_CONTROL)
 			.stage(VkShaderStage.TESSELLATION_EVALUATION)
 			.stage(VkShaderStage.FRAGMENT)
-			//.stage(VkShaderStage.VERTEX)
 			.build();
-
-//	private final Binding uniformBinding = new Binding.Builder()
-//		    .binding(1)
-//		    .type(VkDescriptorType.UNIFORM_BUFFER)
-//		    .stage(VkShaderStage.VERTEX)
-//		    .build();
 
 	@Bean
 	public DescriptorLayout layout() {
-		return DescriptorLayout.create(dev, List.of(samplerBinding)); //, uniformBinding));
+		return DescriptorLayout.create(dev, List.of(samplerBinding));
 	}
 
 	@Bean
@@ -44,21 +38,15 @@ public class DescriptorConfiguration {
 		final int count = 2 * cfg.getFrameCount();
 		return new DescriptorPool.Builder()
 				.add(VkDescriptorType.COMBINED_IMAGE_SAMPLER, count)
-				//.add(VkDescriptorType.UNIFORM_BUFFER, count)
 				.max(count)
 				.build(dev);
 	}
 
 	@Bean
-	public List<DescriptorSet> descriptors(DescriptorPool pool, DescriptorLayout layout, Sampler sampler, View texture) { //, VulkanBuffer uniform) {
-		// Allocate descriptor set per frame-buffer
+	public List<DescriptorSet> descriptors(DescriptorPool pool, DescriptorLayout layout, Sampler sampler, View texture) {
 		final List<DescriptorSet> descriptors = pool.allocate(layout, cfg.getFrameCount());
-
-		// Init resources
 		DescriptorSet.set(descriptors, samplerBinding, sampler.resource(texture));
-//		DescriptorSet.set(descriptors, uniformBinding, uniform.uniform());
 		DescriptorSet.update(dev, descriptors);
-
 		return descriptors;
 	}
 }

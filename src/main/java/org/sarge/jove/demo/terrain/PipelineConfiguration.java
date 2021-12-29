@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.sarge.jove.common.Rectangle;
@@ -16,6 +17,7 @@ import org.sarge.jove.model.Model;
 import org.sarge.jove.platform.vulkan.VkCullMode;
 import org.sarge.jove.platform.vulkan.VkPolygonMode;
 import org.sarge.jove.platform.vulkan.VkShaderStage;
+import org.sarge.jove.platform.vulkan.VkSpecializationInfo;
 import org.sarge.jove.platform.vulkan.core.LogicalDevice;
 import org.sarge.jove.platform.vulkan.pipeline.Pipeline;
 import org.sarge.jove.platform.vulkan.pipeline.PipelineCache;
@@ -32,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 class PipelineConfiguration {
 	private final LogicalDevice dev;
 	private final ResourceLoaderAdapter<InputStream, Shader> loader;
+	private final VkSpecializationInfo constants = Shader.constants(Map.of(0, 20f, 1, 2.5f));
 
 	public PipelineConfiguration(LogicalDevice dev, DataSource classpath) {
 		this.dev = dev;
@@ -62,7 +65,7 @@ class PipelineConfiguration {
 	PipelineLayout pipelineLayout(DescriptorLayout layout) {
 		return new PipelineLayout.Builder()
 				.add(layout)
-				.add(new PushConstantRange(0, 3 * Matrix.IDENTITY.length(), Set.of(VkShaderStage.TESSELLATION_EVALUATION)))
+				.add(new PushConstantRange(0, 3 * Matrix.IDENTITY.length(), Set.of(VkShaderStage.TESSELLATION_CONTROL, VkShaderStage.TESSELLATION_EVALUATION)))
 				.build(dev);
 	}
 
@@ -86,12 +89,16 @@ class PipelineConfiguration {
 				.layout(pipelineLayout)
 				.pass(pass)
 				.allowDerivatives()
-				.viewport(new Rectangle(swapchain.extents()))
+				.viewport()
+					.viewportScissor(new Rectangle(swapchain.extents()))
+					.build()
 				.shader(VkShaderStage.TESSELLATION_CONTROL)
 					.shader(control)
+					.constants(constants)
 					.build()
 				.shader(VkShaderStage.TESSELLATION_EVALUATION)
 					.shader(evaluation)
+					.constants(constants)
 					.build()
 				.tesselation()
 					.points(4)		// TODO - from where?

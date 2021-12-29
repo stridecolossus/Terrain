@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
 public class CameraConfiguration {
 	private Matrix projection;
 	private final Camera cam = new Camera();
-	private /*final*/ OrbitalCameraController controller;
+	private final OrbitalCameraController controller;
 	private final MutableRotation rot = new MutableRotation(Vector.Y);
 
 	public CameraConfiguration(Swapchain swapchain) {
@@ -36,9 +36,7 @@ public class CameraConfiguration {
 		controller = new OrbitalCameraController(cam, swapchain.extents());
 		controller.radius(10);
 		controller.scale(1f);
-//		cam.move(new Point(0, 15, 10));
-//		cam.look(Point.ORIGIN);
-}
+	}
 
 	@Bean
 	public ActionBindings bindings(Window window, RenderLoop loop, Animator animator) {
