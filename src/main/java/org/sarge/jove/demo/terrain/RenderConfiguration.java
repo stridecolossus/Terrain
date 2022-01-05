@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.sarge.jove.control.Button.ToggleHandler;
 import org.sarge.jove.control.FrameCounter;
 import org.sarge.jove.control.FrameThrottle;
 import org.sarge.jove.control.FrameTracker;
@@ -38,6 +39,7 @@ public class RenderConfiguration {
 	@Autowired private Queue graphics;
 	@Autowired private List<FrameBuffer> buffers;
 	@Autowired private List<Pipeline> pipelines;
+	private int pipelineIndex;
 
 	@Bean("render.pools")
 	List<Command.Pool> commandPools() {
@@ -50,14 +52,41 @@ public class RenderConfiguration {
 	}
 
 	@Bean
+	public ToggleHandler toggle() {
+		return pressed -> {
+			if(pipelineIndex == 0) {
+				pipelineIndex = 1;
+			}
+			else {
+				pipelineIndex = 0;
+			}
+			//pipelineIndex = pressed ? 1 : 0;
+			System.out.println(pipelineIndex);
+		};
+	}
+
+//	class PlayPauseAction implements ToggleHandler {
+//	@Override
+//	public void handle(boolean pressed) {
+//		if(animator.isPlaying()) {
+//			animator.apply(Player.State.PAUSE);
+//		}
+//		else {
+//			animator.apply(Player.State.PLAY);
+//		}
+////		animator.apply(pressed ? Player.State.PAUSE : Player.State.PAUSE);
+//	}
+//}
+//bindings.bind(keyboard.key("SPACE"), new PlayPauseAction());
+
+	@Bean
 	Recorder recorder(List<DescriptorSet> descriptors, VulkanBuffer vbo, VulkanBuffer index, Model model) {
 		final DescriptorSet ds = descriptors.get(0); // TODO
 		final DrawCommand draw = DrawCommand.of(model);
 
-		// TODO
-		Pipeline pipeline = pipelines.get(0);
-
 		return buffer -> {
+			Pipeline pipeline = pipelines.get(pipelineIndex);
+
 			buffer
 					.add(pipeline.bind())
 					.add(ds.bind(pipeline.layout()))

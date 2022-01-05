@@ -20,7 +20,7 @@ void main() {
     // Interpolate texture coordinate
     vec2 coords1 = mix(inCoord[1], inCoord[0], gl_TessCoord.x);
     vec2 coords2 = mix(inCoord[2], inCoord[3], gl_TessCoord.x);
-    vec2 coord = mix(coords1, coords2, gl_TessCoord.y);
+    outCoord = mix(coords1, coords2, gl_TessCoord.y);
 
     // Interpolate position
     vec4 pos1 = mix(gl_in[1].gl_Position, gl_in[0].gl_Position, gl_TessCoord.x);
@@ -28,9 +28,9 @@ void main() {
     vec4 pos = mix(pos1, pos2, gl_TessCoord.y);
 
     // Lookup vertex height
-    pos.y += texture(heightMap, coord).r * HeightScale;
+    pos.y += texture(heightMap, outCoord).r * HeightScale;
 
     // Output vertex
     gl_Position = projection * view * model * pos;
-    outCoord = coord;
+    //outCoord = coord;
 }

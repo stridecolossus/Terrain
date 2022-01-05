@@ -14,7 +14,7 @@ layout(vertices=4) out;
 
 layout(location=0) out vec2 outCoord[4];
 
-layout(constant_id=0) const float TesselationLevel = 20.0;
+layout(constant_id=0) const float TesselationLevel = 20;
 
 float factor(float a, float b) {
     float dist = min(a, b);
@@ -27,7 +27,7 @@ void main() {
         float distance[4];
         for(int n = 0; n < 4; ++n) {
             float h = texture(heightMap, inCoord[n]).r;
-            vec4 pos = view * model * (gl_in[gl_InvocationID].gl_Position + vec4(0.0, h, 0.0, 0.0));
+            vec4 pos = view * model * (gl_in[gl_InvocationID].gl_Position + vec4(0, h, 0, 0));
             distance[n] = dot(pos, pos);
         }
 

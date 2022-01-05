@@ -1,14 +1,10 @@
 package org.sarge.jove.demo.terrain;
 
 import java.nio.ByteBuffer;
-import java.time.Duration;
 
 import org.sarge.jove.control.ActionBindings;
-import org.sarge.jove.control.Animator;
-import org.sarge.jove.control.RotationAnimation;
+import org.sarge.jove.control.Button.ToggleHandler;
 import org.sarge.jove.geometry.Matrix;
-import org.sarge.jove.geometry.MutableRotation;
-import org.sarge.jove.geometry.Vector;
 import org.sarge.jove.platform.desktop.KeyboardDevice;
 import org.sarge.jove.platform.desktop.MouseDevice;
 import org.sarge.jove.platform.desktop.Window;
@@ -29,7 +25,7 @@ public class CameraConfiguration {
 	private Matrix projection;
 	private final Camera cam = new Camera();
 	private final OrbitalCameraController controller;
-	private final MutableRotation rot = new MutableRotation(Vector.Y);
+//	private final MutableRotation rot = new MutableRotation(Vector.Y);
 
 	public CameraConfiguration(Swapchain swapchain) {
 		projection = Projection.DEFAULT.matrix(0.1f, 100, swapchain.extents());
@@ -39,7 +35,7 @@ public class CameraConfiguration {
 	}
 
 	@Bean
-	public ActionBindings bindings(Window window, RenderLoop loop, Animator animator) {
+	public ActionBindings bindings(Window window, RenderLoop loop, ToggleHandler toggle) {
 		// Bind stop action
 		final ActionBindings bindings = new ActionBindings();
 		final KeyboardDevice keyboard = window.keyboard();
@@ -58,7 +54,7 @@ public class CameraConfiguration {
 ////				animator.apply(pressed ? Player.State.PAUSE : Player.State.PAUSE);
 //			}
 //		}
-//		bindings.bind(keyboard.key("SPACE"), new PlayPauseAction());
+		bindings.bind(keyboard.key("SPACE"), toggle);
 
 		// Bind camera controller
 		final MouseDevice mouse = window.mouse();
@@ -73,13 +69,13 @@ public class CameraConfiguration {
 		return PushConstantUpdateCommand.of(layout);
 	}
 
-	@Bean
-	Animator animator() {
-		final Animator animator = new Animator(Duration.ofSeconds(10), new RotationAnimation(rot));
-		animator.setRepeating(true);
-		//animator.apply(Player.State.PLAY);
-		return animator;
-	}
+//	@Bean
+//	Animator animator() {
+//		final Animator animator = new Animator(Duration.ofSeconds(10), new RotationAnimation(rot));
+//		animator.setRepeating(true);
+//		//animator.apply(Player.State.PLAY);
+//		return animator;
+//	}
 
 	@Bean
 	public Task matrix(PushConstantUpdateCommand update) {
